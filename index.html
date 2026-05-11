@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>seekN solutions — AI-Powered Infrastructure & Software</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg: #000000;
+            --bg-secondary: #0a0a0a;
+            --green: #00FF41;
+            --green-dim: #00aa2a;
+            --green-glow: rgba(0, 255, 65, 0.15);
+            --white: #ffffff;
+            --gray: #4a4a4a;
+            --border: rgba(0, 255, 65, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --green: #0071e3;
+            --green-dim: #388bfd;
+            --green-glow: rgba(0, 113, 227, 0.08);
+            --white: #1d1d1f;
+            --gray: #86868b;
+            --border: rgba(0,0,0,0.08);
+        }
+        
+        [data-theme="dark"] {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --green: #58a6ff;
+            --green-dim: #388bfd;
+            --green-glow: rgba(88, 166, 255, 0.1);
+            --white: #c9d1d9;
+            --gray: #8b949e;
+            --border: rgba(255,255,255,0.08);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            gap: 6px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+        
+        [data-theme="light"] .theme-toggle {
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background: rgba(13,17,23,0.9);
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.15);
+        }
+        
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        
+        .theme-btn:hover, .theme-btn.active {
+            opacity: 1;
+            background: var(--green);
+            color: #000;
+        }
+        
+        body {
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            background: var(--bg);
+            color: var(--green);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.06;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Nav */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+        
+        [data-theme="light"] nav {
+            background: rgba(255,255,255,0.95);
+        }
+        
+        [data-theme="dark"] nav {
+            background: rgba(13,17,23,0.95);
+        }
+        
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: 1px;
+        }
+        
+        .logo span {
+            opacity: 0.7;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--green);
+        }
+        
+        /* Hero */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: clamp(36px, 5vw, 56px);
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        
+        .hero h1 span {
+            color: var(--green);
+            text-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+        }
+        
+        [data-theme="light"] .hero h1 span {
+            text-shadow: none;
+        }
+        
+        .hero p {
+            font-size: 15px;
+            color: var(--gray);
+            max-width: 560px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+        
+        .hero-cta {
+            display: inline-block;
+            background: transparent;
+            color: var(--green);
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid var(--green);
+            transition: all 0.25s;
+        }
+        
+        .hero-cta:hover {
+            background: var(--green);
+            color: #000;
+            box-shadow: 0 0 20px var(--green-glow);
+        }
+        
+        /* Section */
+        .section {
+            padding: 80px 0;
+        }
+        
+        .section-alt {
+            background: var(--bg-secondary);
+        }
+        
+        [data-theme="light"] .section-alt {
+            background: #f5f5f7;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .section-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 13px;
+            margin-bottom: 48px;
+        }
+        
+        /* Cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 28px;
+            border: 1px solid var(--border);
+            transition: all 0.25s;
+        }
+        
+        [data-theme="dark"] .card {
+            background: var(--bg-secondary);
+        }
+        
+        .card:hover {
+            border-color: var(--green);
+            box-shadow: 0 0 20px var(--green-glow);
+        }
+        
+        [data-theme="light"] .card:hover {
+            box-shadow: 0 4px 20px rgba(0,113,227,0.1);
+        }
+        
+        .card-icon {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .card p {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .card ul {
+            list-style: none;
+        }
+        
+        .card li {
+            font-size: 12px;
+            color: var(--gray);
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card li::before {
+            content: '>';
+            color: var(--green);
+            font-weight: 600;
+        }
+        
+        /* About */
+        .about {
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .about p {
+            font-size: 14px;
+            color: var(--gray);
+            max-width: 680px;
+            margin: 0 auto 36px;
+            line-height: 1.8;
+        }
+        
+        /* Team */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 40px;
+        }
+        
+        .team-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 24px 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.25s;
+        }
+        
+        [data-theme="dark"] .team-card {
+            background: var(--bg-secondary);
+        }
+        
+        .team-card:hover {
+            border-color: var(--green);
+        }
+        
+        .team-emoji {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .team-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .team-role {
+            font-size: 11px;
+            color: var(--green);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        
+        .team-focus {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        
+        /* Contact */
+        .contact {
+            background: var(--bg-secondary);
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        [data-theme="light"] .contact {
+            background: #f5f5f7;
+        }
+        
+        .contact h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 36px;
+            margin: 28px 0;
+            flex-wrap: wrap;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        .contact-item a {
+            color: var(--green);
+            text-decoration: none;
+        }
+        
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .telegram-btn {
+            display: inline-block;
+            background: transparent;
+            color: var(--green);
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid var(--green);
+            transition: all 0.25s;
+        }
+        
+        .telegram-btn:hover {
+            background: var(--green);
+            color: #000;
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--bg);
+            padding: 28px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        
+        footer p {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        footer span {
+            color: var(--green);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero { padding: 80px 0 60px; }
+            .section { padding: 60px 0; }
+            .contact-info { gap: 20px; }
+            .theme-toggle { bottom: 16px; right: 16px; }
+        }
+    </style>
+</head>
+<body data-theme="matrix">
+    
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn" onclick="setTheme('light')" title="Light">☀️</button>
+        <button class="theme-btn" onclick="setTheme('dark')" title="Dark">🌙</button>
+        <button class="theme-btn active" onclick="setTheme('matrix')" title="Matrix">💻</button>
+    </div>
+    
+    <!-- Matrix rain background -->
+    <canvas id="matrix-bg"></canvas>
+    
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">seek<span>N</span> solutions</div>
+            <ul class="nav-links">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>AI-Powered <span>Infrastructure</span> & Software</h1>
+            <p>We build, deploy, and manage enterprise systems using autonomous AI agents with human expertise. From Kubernetes clusters to AI inference gateways — we architect and operate the systems that power modern businesses.</p>
+            <a href="#contact" class="hero-cta">Start a Project →</a>
+        </div>
+    </section>
+    
+    <!-- Services -->
+    <section id="services" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">What We Build</h2>
+            <p class="section-sub">Enterprise infrastructure & automation solutions</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">☁️</div>
+                    <h3>Cloud & DevOps</h3>
+                    <p>Kubernetes clusters, CI/CD pipelines, infrastructure as code, and 24/7 cloud operations.</p>
+                    <ul>
+                        <li>Terraform / Ansible automation</li>
+                        <li>GitHub Actions / Jenkins / ArgoCD</li>
+                        <li>Rancher / Longhorn storage</li>
+                        <li>Prometheus / Grafana monitoring</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <h3>AI & Machine Learning</h3>
+                    <p>LLM integration, AI inference gateways, and custom model deployment pipelines.</p>
+                    <ul>
+                        <li>LiteLLM / Ollama / vLLM gateways</li>
+                        <li>LLM fine-tuning & RAG pipelines</li>
+                        <li>AI agent orchestration</li>
+                        <li>Multi-model routing & fallbacks</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🔒</div>
+                    <h3>Database Hardening</h3>
+                    <p>Enterprise database automation and security compliance for MSSQL, Oracle, MySQL, DB2.</p>
+                    <ul>
+                        <li>Ansible-based DB automation</li>
+                        <li>CIS benchmark compliance</li>
+                        <li>Security hardening & scanning</li>
+                        <li>Automated reporting</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <h3>Workflow Automation</h3>
+                    <p>Business process automation and integration pipelines using n8n, custom APIs, and event-driven architecture.</p>
+                    <ul>
+                        <li>n8n workflow automation</li>
+                        <li>API integration & development</li>
+                        <li>Event-driven architectures</li>
+                        <li>Webhook & cron orchestration</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🚀</div>
+                    <h3>SaaS Development</h3>
+                    <p>Full-stack web applications with React, FastAPI, PostgreSQL, and cloud-native deployment.</p>
+                    <ul>
+                        <li>React / FastAPI / Node.js</li>
+                        <li>PostgreSQL / Redis / MinIO</li>
+                        <li>Docker / K3s deployment</li>
+                        <li>Supabase / self-hosted backends</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Managed Services</h3>
+                    <p>Ongoing infrastructure management, monitoring, security updates, and priority support.</p>
+                    <ul>
+                        <li>24/7 infrastructure monitoring</li>
+                        <li>Automatic security updates</li>
+                        <li>Weekly health reports</li>
+                        <li>Priority incident response</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- About -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">Who We Are</h2>
+            <p>seekN solutions delivers AI-powered infrastructure and software development services. We combine autonomous AI agents with human expertise to build, deploy, and manage enterprise systems. From Kubernetes clusters to AI inference gateways, from database hardening to workflow automation — we architect and operate the systems that power modern businesses.</p>
+            <a href="#contact" class="hero-cta">Work With Us →</a>
+        </div>
+    </section>
+    
+    <!-- Team -->
+    <section id="team" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Our Team</h2>
+            <p class="section-sub">Real professionals, real expertise</p>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-emoji">👨‍💼</div>
+                    <div class="team-name">Joseph Chung</div>
+                    <div class="team-role">CEO & Founder</div>
+                    <div class="team-focus">Strategy, Partnerships</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👨‍💻</div>
+                    <div class="team-name">Aaron Lim</div>
+                    <div class="team-role">CTO</div>
+                    <div class="team-focus">Architecture, Technical Decisions</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👩‍💻</div>
+                    <div class="team-name">Sophia Yeo</div>
+                    <div class="team-role">Lead Engineer</div>
+                    <div class="team-focus">Frontend, APIs, Integration</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👨‍🔧</div>
+                    <div class="team-name">David Wong</div>
+                    <div class="team-role">DevOps Engineer</div>
+                    <div class="team-focus">CI/CD, K8s, IaC</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👩‍🔧</div>
+                    <div class="team-name">Mei Lin Koh</div>
+                    <div class="team-role">DBA</div>
+                    <div class="team-focus">DB Hardening, Migration, Tuning</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👨‍🎨</div>
+                    <div class="team-name">Rayan Xavier</div>
+                    <div class="team-role">QA Engineer</div>
+                    <div class="team-focus">Testing, Automation</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">👩‍💼</div>
+                    <div class="team-name">Fiona Tan</div>
+                    <div class="team-role">HR & Operations</div>
+                    <div class="team-focus">HR, Scheduling, Coordination</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">🤝</div>
+                    <div class="team-name">James Koh</div>
+                    <div class="team-role">Business Development</div>
+                    <div class="team-focus">Sales, Partnerships, Growth</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">💼</div>
+                    <div class="team-name">Ricky Sim</div>
+                    <div class="team-role">IT Sales</div>
+                    <div class="team-focus">Pre-sales, Technical Support</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">📢</div>
+                    <div class="team-name">Lisa Toh</div>
+                    <div class="team-role">Marketing Lead</div>
+                    <div class="team-focus">Marketing, Content, Strategy</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">💰</div>
+                    <div class="team-name">Claire Wu</div>
+                    <div class="team-role">Finance Lead</div>
+                    <div class="team-focus">Budget, Planning, Analytics</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-emoji">⚙️</div>
+                    <div class="team-name">Ben Ng</div>
+                    <div class="team-role">Operations Manager</div>
+                    <div class="team-focus">Operations, Logistics, Admin</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Let's Build Something</h2>
+            <p style="color: var(--gray); font-size: 13px; margin-top: 8px;">Ready to automate your infrastructure? Get in touch.</p>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span>📧</span>
+                    <a href="mailto:joseph118789@gmail.com">joseph118789@gmail.com</a>
+                </div>
+                <div class="contact-item">
+                    <span>💬</span>
+                    <a href="https://t.me/seeknsolutions_bot" target="_blank">@seeknsolutions_bot</a>
+                </div>
+            </div>
+            
+            <a href="https://t.me/seeknsolutions_bot" target="_blank" class="telegram-btn">Message on Telegram</a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2026 <span>seekN</span> solutions — All rights reserved</p>
+        </div>
+    </footer>
+    
+    <script>
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('seekn-theme', theme);
+            
+            const canvas = document.getElementById('matrix-bg');
+            if (theme === 'matrix') {
+                canvas.style.opacity = '0.06';
+            } else {
+                canvas.style.opacity = '0';
+            }
+            
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(theme)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function getAutoTheme() {
+            const hour = new Date().getHours();
+            return (hour >= 6 && hour < 18) ? 'light' : 'dark';
+        }
+        
+        function initTheme() {
+            const stored = localStorage.getItem('seekn-theme');
+            let theme = stored || 'matrix';
+            
+            if (!stored) {
+                const rand = Math.random();
+                theme = (rand < 0.5) ? 'matrix' : getAutoTheme();
+            }
+            
+            setTheme(theme);
+        }
+        
+        // Matrix rain
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+        
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00FF41';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+        
+        initTheme();
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+*.bak
+*.backup
+*.ios-backup
+*.working
+marc.html
+.DS_Store
